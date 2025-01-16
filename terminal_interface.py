@@ -463,7 +463,7 @@ def terminal_start():
     while True:
         get = input("/> ")
         if get == "exit":
-            system("F") # reset terminal color to basic white
+            system("color F") # reset terminal color to basic white
             break
         if get == "help":
             print_help_menu(debug_mode)
