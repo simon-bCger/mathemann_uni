@@ -4,6 +4,7 @@ import Variablen_bestimmen
 import matrix_multiplikation
 import inspect
 import customErrors
+import matrix_arithmetic
 
 
 class Matrix:
@@ -81,19 +82,46 @@ class Matrix:
         """
         if self.debug:
             print(f"Executing: {inspect.currentframe().f_code.co_name}")
-        check = matrix_multiplikation.linking_or_skalar(self, matrix)
+        check = matrix_arithmetic.linking_or_skalar(self, matrix)
         if check == 1:
-            return matrix_multiplikation.linking_of_matrix(self, matrix)
+            return matrix_arithmetic.linking_of_matrix(self, matrix)
         elif check == 2:
-            return matrix_multiplikation.skalar_of_matrix(self, matrix)
+            return matrix_arithmetic.skalar_of_matrix(self, matrix)
         else:
             raise ArithmeticError("Es konnte weder eine Verknüpfung noch Multiplikation ausgeführt werden.")
 
     def __add__(self, matrix:'Matrix'):
-        pass
+        """
+        Diese Funktion ermöglicht, dass addieren von Matrizen.
+        :param matrix: ein Objekt des Typs <Matrix>
+        :return: neue Matrix mit erfolgter addition / error im Fall das die Matrizen ungleiche Dimensionen haben
+        """
+        if self.debug:
+            print(f"Executing: {inspect.currentframe().f_code.co_name}")
+
+        result = matrix_arithmetic.addition(self, matrix)
+
+        if result == 0:
+            raise ArithmeticError("Es konnte leider keine Addition erfolgen, da die Dimensionen der Matrizen ungleich sind.")
+        else:
+            return result
 
     def __sub__(self, matrix:'Matrix'):
-        pass
+        """
+        Diese Funktion ermöglicht, dass subtrahieren von Matrizen.
+        :param matrix: ein Objekt des Typs <Matrix>
+        :return: neue Matrix mit erfolgter subtraktion / error im Fall das die Matrizen ungleiche Dimensionen haben
+        """
+        if self.debug:
+            print(f"Executing: {inspect.currentframe().f_code.co_name}")
+
+        result = matrix_arithmetic.subtraction(self, matrix)
+
+        if result == 0:
+            raise ArithmeticError("Es konnte leider keine Subtraktion erfolgen, da die Dimensionen der Matrizen ungleich sind.")
+        else:
+            return result
+
 
     def record_matrix(self):
         # fertig

@@ -20,3 +20,8 @@ class ExistenceError(Exception):
     def __init__(self, message):
         self.message = message
         super().__init__(self.message)
+
+class SlipUpError(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)

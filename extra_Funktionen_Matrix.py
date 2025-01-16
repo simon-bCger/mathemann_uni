@@ -3,6 +3,8 @@ from random import randint
 import numpy as np
 
 
+# TODO diese Funktionen integrieren für Präsentationszwecke
+
 def random_size(matrix, s):
     for i in range(s):
         for j in range(s):
@@ -13,5 +15,4 @@ def random_lv(matrix, s):
     for i in range(s):
         a[i] = randint(0, 5)
     matrix.set_sv(a)
-
 

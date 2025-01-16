@@ -24,7 +24,47 @@ def print_help_menu(debug_mode):
     print("<-------------------->")
 
 
+def check_arithmetic_operators(operator:str, matrix, matrizes, debug_mode):
+    """
+    This function checks which of the available matrizes can be calculated with the chosen matrix
+    :param operator: takes a string, which is should be an arithmetic operator, else error
+    :param matrix: die matrix welche geprüft werden soll
+    :param matrizes: takes alle matrizes
+    :param debug_mode: toggle for debugMode
+    :return:
+    """
+
+    if debug_mode:
+        print(f"Executing: {inspect.currentframe().f_code.co_name}")
+
+
+    possible_matrizes = {}
+
+    if operator == "+" or operator == "-": # they both have the same requirements
+        for m_name in matrizes.keys():
+            if matrizes[m_name].height == matrix.height and matrizes[m_name].width == matrix.width:
+                possible_matrizes.update({str(m_name): matrizes[m_name]})
+
+    elif operator == "*":
+        for m_name in matrizes.keys():
+            if ((matrix.width == matrizes[m_name].height) or
+                (matrix.get_height() == matrizes[m_name].get_height() and matrix.get_width() == 1 and matrizes[m_name].get_width() == 1)):
+
+                possible_matrizes.update({str(m_name): matrizes[m_name]})
+                
+    else:
+        raise customErrors.SlipUpError("Somehow you chose an arithmetic_operator which is not existent or unaccounted for :(")
+
+    return possible_matrizes
+
 def arith_mode(matrizes, clean_mode, debug_mode):
+    """
+    TODO bschreibung machen
+    :param matrizes:
+    :param clean_mode:
+    :param debug_mode:
+    :return:
+    """
     # works
     if clean_mode:
         system("cls")
@@ -32,7 +72,12 @@ def arith_mode(matrizes, clean_mode, debug_mode):
     if debug_mode:
         print(f"Executing: {inspect.currentframe().f_code.co_name}")
 
-    while True: # sicher gehen das genug matrizen zum Rechnen vorhanden sind mind.(2)
+    # this is needed, else "dict_keys(...)" is printed and we only want (...)
+    key_list = str(list(matrizes.keys()))
+    key_list = key_list.replace("[", "")
+    key_list = key_list.replace("]", "")
+
+    while True: # sicher gehen das genug matrizes zum Rechnen vorhanden sind mind.(2)
         if len(matrizes) < 2:
             print(f"Leider stehen nicht genug Matrizen zur auswahl geg.[{len(matrizes)}], mind.[2]!")
             print(f"Möchtest du weitere Matrizen hinzufügen?")
@@ -51,7 +96,7 @@ def arith_mode(matrizes, clean_mode, debug_mode):
     while True: # ab hier kann so viel gerechnet werden wie gewünscht
         print("Führe eine Rechnung aus ->")
         while True:
-            print(f"Alle möglichen Matrizen:\n{matrizes.keys()}")
+            print(f"Alle möglichen Matrizen:\n{key_list}")
             m_name1 = input("Erste Matrix /> ")
             if m_name1 in matrizes.keys():
                 break
@@ -61,7 +106,7 @@ def arith_mode(matrizes, clean_mode, debug_mode):
             print("Matrix nicht vorhanden!")
 
         while True:
-            valide_rechenzeichen = ["*"]
+            valide_rechenzeichen = ["+", "-", "*"]
             print(f"Gib ein Valides Rechenzeichen an {valide_rechenzeichen} !")
             rechenzeichen = input("Rechenzeichen /> ")
             if rechenzeichen in valide_rechenzeichen:
@@ -71,32 +116,86 @@ def arith_mode(matrizes, clean_mode, debug_mode):
             print("Kein Valides Rechenzeichen!")
 
         while True:
-            print(f"Alle möglichen Matrizen:\n{matrizes.keys()}")
-            m_name2 = input("Zweite Matrix /> ")
-            if m_name2 in matrizes.keys():
-                break
-            if m_name2 == "exit":
-                return matrizes
-            print("Matrix nicht vorhanden!")
+            possible_m = check_arithmetic_operators(rechenzeichen, matrizes[m_name1], matrizes, debug_mode)
+
+            # this is needed, else "dict_keys(...)" is printed and we only want (...)
+            possible_m_keys = str(list(possible_m.keys()))
+            possible_m_keys = possible_m_keys.replace("[", " ")
+            possible_m_keys = possible_m_keys.replace("]", " ")
+
+            if len(possible_m) > 0:
+                print(f"Alle möglichen Matrizen:\n{possible_m_keys}")
+                m_name2 = input("Zweite Matrix /> ")
+                if m_name2 in possible_m.keys():
+                    break
+                if m_name2 == "exit":
+                    return matrizes
+                print("Matrix nicht vorhanden!")
+            else:
+                print("Leider gibt es keine Matrix mit welcher dein Rechenvorgang möglich ist!")
+                print(f"Möchtest du weitere Matrizen hinzufügen?")
+                while True:
+                    get = input(f"y/n /> ")
+                    if get == "y":
+                        matrizes = set_matrix(matrizes, clean_mode, debug_mode)
+                        break
+                    elif get == "n":
+                        return matrizes
+                    else:
+                        print("Keine Valide Eingabe!")
 
         if clean_mode:
             system("cls")
 
         print("<----------- Alte Rechnung ----------->")
         print(f"Es wird berechnet: {m_name1} {rechenzeichen} {m_name2}")
-        t = time_ns()
-        try:
-            e = matrizes[m_name1] * matrizes[m_name2]
-        except ArithmeticError:
-            print("Es konnte weder eine Verknüpfung noch ein Skalar bestimmt werden!")
+        # addition
+        if rechenzeichen == "+":
+            t = time_ns()
+            try:
+                e = matrizes[m_name1] + matrizes[m_name2]
+            except ArithmeticError:
+                print("Es konnte leider keine Addition erfolgen, da die Dimensionen der Matrizen ungleich sind!")
+            else:
+                print(f"Ergebnis: \n{e}")
+                t2 = time_ns() - t
+                print(f"Benötigte Zeit:\n Sekunden: {t2 * 10 ** (-9)}, Millisekunde: {t2 * 10 ** (-6)}, Mikrosekunde: {t2 * 10 ** (-3)}, Nanosekunde: {t2}")
+        # subtraktion
+        elif rechenzeichen == "-":
+            t = time_ns()
+            try:
+                e = matrizes[m_name1] - matrizes[m_name2]
+            except ArithmeticError:
+                print("Es konnte leider keine Addition erfolgen, da die Dimensionen der Matrizen ungleich sind!")
+            else:
+                print(f"Ergebnis: \n{e}")
+                t2 = time_ns() - t
+                print(
+                    f"Benötigte Zeit:\n Sekunden: {t2 * 10 ** (-9)}, Millisekunde: {t2 * 10 ** (-6)}, Mikrosekunde: {t2 * 10 ** (-3)}, Nanosekunde: {t2}")
+        # multiplikation
+        elif rechenzeichen == "*":
+            t = time_ns()
+            try:
+                e = matrizes[m_name1] * matrizes[m_name2]
+            except ArithmeticError:
+                print("Es konnte weder eine Verknüpfung noch ein Skalar bestimmt werden!")
+            else:
+                print(f"Ergebnis: \n{e}")
+                t2 = time_ns() - t
+                print(f"Benötigte Zeit:\n Sekunden: {t2 * 10 ** (-9)}, Millisekunde: {t2 * 10 ** (-6)}, Mikrosekunde: {t2 * 10 ** (-3)}, Nanosekunde: {t2}")
         else:
-            print(f"Ergebnis: \n{e}")
-            t2 = time_ns() - t
-            print(f"Benötigte Zeit:\n Sekunden: {t2 * 10 ** (-9)}, Millisekunde: {t2 * 10 ** (-6)}, Mikrosekunde: {t2 * 10 ** (-3)}, Nanosekunde: {t2}")
+            raise customErrors.SlipUpError("Somehow you chose an arithmetic_operator which is not existent or unaccounted for :(")
         print("<----------- Neue Rechnung ----------->")
 
 
 def calc_determinant(matrizes, clean_mode, debug_mode):
+    """
+    TODO bschreibung machen
+    :param matrizes:
+    :param clean_mode:
+    :param debug_mode:
+    :return:
+    """
     # works
     if clean_mode:
         system("cls")
@@ -141,6 +240,15 @@ def calc_determinant(matrizes, clean_mode, debug_mode):
     return matrizes
 
 def calc_variables(matrizes, lvs, clean_mode, debug_mode):
+    """
+    TODO bschreibung machen
+    TODO Matizen lassen keine neuen LV zu, es wird einfach die Lösung mit dem alten LV angegeben!!! überarbeiten !!!
+    :param matrizes:
+    :param lvs:
+    :param clean_mode:
+    :param debug_mode:
+    :return:
+    """
     # works
     if clean_mode:
         system("cls")
@@ -214,6 +322,13 @@ def calc_variables(matrizes, lvs, clean_mode, debug_mode):
     return matrizes
 
 def set_matrix(matrizes, clean_mode, debug_mode):
+    """
+    TODO bschreibung machen
+    :param matrizes:
+    :param clean_mode:
+    :param debug_mode:
+    :return:
+    """
     # works
     if clean_mode:
         system("cls")
@@ -257,6 +372,14 @@ def set_matrix(matrizes, clean_mode, debug_mode):
     return matrizes
 
 def set_solution_vector(lvs, clean_mode, debug_mode, pre_name="not_given"):
+    """
+    TODO bschreibung machen
+    :param lvs:
+    :param clean_mode:
+    :param debug_mode:
+    :param pre_name:
+    :return:
+    """
     #works
     if clean_mode:
         system("cls")
@@ -288,6 +411,7 @@ def set_solution_vector(lvs, clean_mode, debug_mode, pre_name="not_given"):
     return lvs
 
 def debug_mode_toggle():
+    """TODO bschreibung machen"""
     system("cls")
     system("color 4")
     print("Do you want to activate DebugMode? [y/n]")
@@ -303,7 +427,10 @@ def debug_mode_toggle():
 
 
 def terminal_start():
-
+    """
+    TODO bschreibung machen
+    :return:
+    """
     debug_mode = debug_mode_toggle()
 
     if not debug_mode:
@@ -336,6 +463,7 @@ def terminal_start():
     while True:
         get = input("/> ")
         if get == "exit":
+            system("F") # reset terminal color to basic white
             break
         if get == "help":
             print_help_menu(debug_mode)
