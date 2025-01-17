@@ -1,7 +1,6 @@
 import numpy as np
 import  Determinantenfunctionen
 import Variablen_bestimmen
-import matrix_multiplikation
 import inspect
 import customErrors
 import matrix_arithmetic
@@ -28,15 +27,7 @@ class Matrix:
         self.determinante = 0
         self.determinante_bestimmt = False
         # ------------- das muss anders gemacht werden------------# vielleicht eine weiter Klasse
-        self.lgs_verfahren = lgs_verfahren # 0 für cramersche Regel, 1 für Gaussalgorithmus
-        self.lv = np.zeros((self.height, 1)) # erstellt einen LV gefüllt mit nullen
-        self.solutions = np.zeros((self.height, 1)) # erstellt einen Array gefüllt mit nullen welche mit den errechneten Lösungen ersetzt werden können
-        self.solved = False # Gibt an, ob schon die Variablen basierend auf dem LV berechnet wurden
-        # ------------- absichern und checken, ob die lr_zerlegung schon angewendet wurde -------------
-        self.lr_done = False
-        self.lr_matrix = Matrix
-        self.solution_vector_after_lr_done = False
-        self.solution_vector_after_lr = Matrix
+        self.solution_vectors = {} # list[toggle if it was solved, solution, lr_matrix, solutions vector] <- lr_matrix is the matrix after "lrszerlegung" was applied with the sv
         # -------------- debug shit ---------------------
         self.debug = debug
 
@@ -68,7 +59,6 @@ class Matrix:
             return  self.array[index[0]]
         else:
             return self.array[index]
-
 
     def __mul__(self, matrix:'Matrix'):
         #fertig
@@ -122,7 +112,6 @@ class Matrix:
         else:
             return result
 
-
     def record_matrix(self):
         # fertig
         """
@@ -146,32 +135,6 @@ class Matrix:
                     return
                 self.array[i, j] = get
         return 1
-
-    def record_sv(self):
-        # TODO fertig, beschreibung nötig
-        """
-
-        :return:
-        """
-        if self.debug:
-            print(f"Executing: {inspect.currentframe().f_code.co_name}")
-        for i in range(self.height):
-            for attempt in range(10):
-                try:
-                    get = float(input("x" + str(i + 1) + ": "))
-                except ValueError:
-                    print("Der Eingegebener Wert ist nicht valide!")
-                else:
-                    break
-            else:
-                print("Leider leider scheint es nicht möglich den richtigen Wert einzugeben. Lass uns von vorne beginnen.")
-                self.record_sv()
-                return
-            self.lv[i] = get
-
-        return 1
-
-
 
     def calculate_determinant(self):
         """
@@ -204,7 +167,7 @@ class Matrix:
                 self.determinante_bestimmt = True
         return self.determinante
 
-    def berechne_variablen(self):
+    def berechne_variablen(self, name, lgs_verfahren):
         # parameter vektor: Lösungsvektor der Größe nx0, wobei n gleich i der Matrix sein muss
         """
         Diese Funktion berechnet basierend auf einer gegebenen Matrix und einem gegebenen Lösungsvektor die Variablen
@@ -214,79 +177,116 @@ class Matrix:
         """
         if self.debug:
             print(f"Executing: {inspect.currentframe().f_code.co_name}")
-        if self.solved:
-            return 1
+
+        if name in self.solution_vectors.keys():
+            if self.solution_vectors[name][0] and self.solution_vectors[name][3] == lgs_verfahren:
+                print("FAILED")
+                return 1
+            else:
+                # chose which process to use
+                if self.solution_vectors[name][3] == 0:
+                    Variablen_bestimmen.c_regel(self, name)
+                elif self.solution_vectors[name][3] == 1:
+                    Variablen_bestimmen.variablen_gaus_(self, name)
+                return 1
         else:
-            if self.lgs_verfahren == 0:
-                Variablen_bestimmen.c_regel(self)
-            elif self.lgs_verfahren == 1:
-                Determinantenfunctionen.gausssches_eliminationsverfahren(self)
-            return 1
+            raise customErrors.ExistenceError("This solution vector does not exist.")
 
     def set_matrix(self, arr:np.array):
+        """
+        with this function the matrix can be set to a numpy array of any length or dimension
+        :param arr: array to change to
+        :return: nothing
+        """
         self.array = arr.copy()
 
-    def set_sv(self, arr:np.array):
-        self.lv = arr.copy()
-        print(self.lv)
+    def add_sv(self, name, lgs_verfahren, arr:np.array):
+        """
+        This function allows to add a new sv to the accumulation of solution vectors referenced to the matrix
+        :param name: name of the solution vector
+        :param lgs_verfahren: which lgs should be used to calculate variables in the future / 0 -> Laplace Entwicklungssatz, 1 -> die LR_Zerlegung
+        :param arr: solutions vector as a np.array
+        :return: nothing
+        """
+        if not name in self.solution_vectors.keys():
+            self.solution_vectors.update({str(name) : [False, 0, 0, lgs_verfahren, arr.copy()]}) # list[toggle if it was solved, solution, lr_matrix, lgs_verfahren, solutions vector] <- lr_matrix is the matrix after "lrszerlegung" was applied with the sv
 
-    def set_lr(self, matrix): # !be carefull, vectors of every length are possible, during calculation the needed numbers to match the size of the matrix will be substituted by zeros
-        self.lr_matrix = matrix
+        # there is no else case, there is just nothing happening, for interacting with the interface that's easier
 
     def set_determinant(self, det):
+        """
+        This function is used to set a determinant
+        :param det: which determinant that should be set
+        :return: nothing
+        """
         self.determinante = det
         self.determinante_bestimmt = True
 
-    def set_solution_vector_after_lr(self, solution_vector_after_lr):
-        self.solution_vector_after_lr = solution_vector_after_lr
-
     def return_matrix(self):
+        """
+        :return: a copy of the matrix values, numpy array
+        """
         return self.array.copy()
 
-    def return_lr_matrix(self):
-        if self.lr_done:
-            return self.lr_matrix.return_matrix(self)
+    def return_lv(self, name):
+        """
+        returns a copy of a solution vector by a given name if it's in the solutions vector list of the Matrix
+        :param name: name of a solution vector
+        :return: copy of the solution vector
+        """
+        if name in self.solution_vectors.keys():
+            return self.solution_vectors[name][-1].copy()
         else:
-            raise customErrors.ExistenceError("Es existiert keine lr_matrix, weshalb sie nicht zurück gegeben werden kann!")
-
-    def return_solutions_vector_after_lr(self):
-        if self.solution_vector_after_lr_done:
-            return self.solution_vector_after_lr
-        else:
-            raise customErrors.ExistenceError("Es existiert kein solutions_vector_after_lr, weshalb dieser nicht zurück gegeben werden kann!")
-
-    def return_lv(self):
-        return self.lv.copy()
+            raise customErrors.ExistenceError("This solution vector does not exist.")
 
     def get_height(self):
+        """
+        :return: height of the matrix
+        """
         return self.height
 
     def get_width(self):
+        """
+        :return: width of the matrix
+        """
         return self.width
 
-    def get_solutions(self):
-        if self.solved:
-            return self.solutions
+    def get_solution(self, name):
+        """
+        returns a copy of the solution of a solution vector, given by the neame
+        :param name: name of a solution vector
+        :return: copy of the solution vector solution
+        """
+        if name in self.solution_vectors.keys():
+            if self.solution_vectors[name][0]:
+                return self.solution_vectors[name][1]
+            else:
+                raise customErrors.ExistenceError("The Variables have not been solved!")
         else:
-            raise customErrors.ExistenceError("The Variables have not been solved!")
+            raise customErrors.ExistenceError("This solution vector does not exist.")
 
     def get_det(self):
+        """
+        :return: the determinant of the Matrix
+        """
         if self.determinante_bestimmt:
             return self.determinante
         else:
             raise customErrors.ExistenceError("The Determinant as not been solved!")
 
     def set_det_process(self, verfahren):
+        """
+        Allows us to change/assign the det process used
+        :param verfahren:
+        :return:
+        """
         if verfahren < 0 or verfahren > 1:
             raise ValueError("Das gewünschte Verfahren existiert nicht. Es gibt nut Verfahren von 0-1!")
         else:
             self.det_verfahren = verfahren
 
-    def set_lgs_process(self, verfahren):
-        if verfahren < 0 or verfahren > 1:
-            raise ValueError("Das gewünschte Verfahren existiert nicht. Es gibt nut Verfahren von 0-1!")
-        else:
-            self.lgs_verfahren = verfahren
-
-    def get_array_type(self):
+    def get_array_type(self):  # unused but may be helpful while debugging
+        """
+        :return: the type of the matrix array
+        """
         return self.array.dtype

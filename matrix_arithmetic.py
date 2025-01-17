@@ -5,9 +5,9 @@ import inspect
 
 def addition(matrix, matrix2):
     """
-    TODO
-    :param matrix:
-    :param matrix2:
+    this function adds two matrizes with the same dimensions together
+    :param matrix: matrix to add
+    :param matrix2: matrix to add
     :return: 0 ⇽ keine Operation möglich / Ergebnis
     """
 
@@ -26,11 +26,11 @@ def addition(matrix, matrix2):
 
 def subtraction(matrix, matrix2):
     """
-        TODO
-        :param matrix:
-        :param matrix2:
-        :return: 0 ⇽ keine Operation möglich / Ergebnis
-        """
+    this function subtracts two matrizes with the same dimensions from each other
+    :param matrix: matrix to subtract
+    :param matrix2: matrix to subtract
+    :return: 0 ⇽ keine Operation möglich / Ergebnis
+    """
 
     if matrix.debug:
         print(f"Executing: {inspect.currentframe().f_code.co_name}")

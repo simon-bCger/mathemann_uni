@@ -2,10 +2,6 @@ import inspect
 import  Matrix_classe
 import numpy as np
 
-import customErrors
-from Variablen_bestimmen import variablen_gaus_
-
-
 def size_2x2(matrix):
     # fertig
     """
@@ -100,7 +96,6 @@ def laplace_determinante(matrix):
         size_2x2(matrix)
     return matrix.get_det()
 
-
 def kleinere_matrix_geber(matrix, tu: tuple[int, int]):
     # fertig, beschreibung maybe überarbeiten
     """
@@ -181,59 +176,46 @@ def beste_reihe_spalte_for_laplace(matrix):
     tu = (best[0], best[1])
     return tu
 
-
-def gausssches_eliminationsverfahren(matrix):
-    """
-    Diese Funktion wendet das Gausssche Eliminationsverfahren an, um eine Stufenmatrix zu generieren,
-    zudem erzeugt sie eine Matrix welche die Multiplikatoren für jede erzeugte Null enthält
-    :param matrix:
-    :return:
-    basierend auf: https://de.wikipedia.org/wiki/Gau%C3%9Fsches_Eliminationsverfahren#LR-Zerlegung
-    """
-    if matrix.debug:
-        print(f"Executing: {inspect.currentframe().f_code.co_name}")
-
-    lr_zerlegung(matrix, called_by_gaus=True)
-    # print(f"Lr_Matrix: \n{matrix.return_lr_matrix(}")
-    # print(f"solutions_vector_after_lr:\n{matrix.return_solutions_vector_after_lr()}")
-    if matrix.determinante == 0:
-        raise customErrors.DeterminantZeroError("Die Determinante der Matrix ist Null, folglich hat sie keine oder unendlich Lösungen!")
-    else:
-        # variablen lösungen errechnen
-        variablen_gaus_(matrix)
-    return
-
-def lr_zerlegung(matrix, called_by_gaus = False):
+def lr_zerlegung(matrix, name = "not_needed", called_by_gaus = False):
     """
     Diese Funktion verwendet das lr_zerlegung-verfahren,
     dieses verwendet das gaußsche Eliminationsverfahren und multipliziert dann die Werte der Diagonalen
     zu den Werten L und U, welche multipliziert die Determinante der gegebenen Matrix ergibt.
     Time complexity: O(n^3) ⇽ bei optimaler Programmierung
+    :param name: name of the solution vector we want to use
     :param called_by_gaus: dieser, wird genutzt, falls die Funktion aus von der Funktion
                            "gausssches_eliminationsverfahren" aufgerufen wurde
     :param matrix: eine standard Matrix vom typ Matrix
-    :return:
+    :return: nothing, or solution vector after lr if called_by_gaus = False
     shoutout:
         - https://www.youtube.com/watch?app=desktop&v=Th1EE-65u44&t=413s
         - https://de.wikipedia.org/wiki/Gau%C3%9Fsches_Eliminationsverfahren#LR-Zerlegung
     """
+
     if matrix.debug:
         print(f"Executing: {inspect.currentframe().f_code.co_name}")
 
     custom_lv = Matrix_classe.Matrix # damit es weniger Warnungen gibt
     if called_by_gaus:
         custom_lv = Matrix_classe.Matrix(matrix.height, 1)
-        custom_lv.set_matrix(matrix.return_lv())
+        custom_lv.set_matrix(matrix.return_lv(name))
 
     diagonal_matrix = Matrix_classe.Matrix(matrix.height, matrix.width)
     diagonal_matrix.set_matrix(matrix.return_matrix())
-    # check:
+
+    # check: überprüfen das die Zahl an pos [0, 0] != 0 ist, sonst wird getauscht
     if diagonal_matrix[0, 0] == 0:
         for i in range(diagonal_matrix.height):
             if diagonal_matrix[i, 0] != 0:
+                # matrix change
                 save = diagonal_matrix.array.copy()
                 diagonal_matrix.array[0] = diagonal_matrix.array[i]
                 diagonal_matrix.array[i] = save[0]
+                # solution vector change
+                if called_by_gaus:
+                    save2 = custom_lv.array.copy()
+                    custom_lv.array[0, 0] = custom_lv.array[i, 0]
+                    custom_lv.array[i, 0] = save2[0, 0]
                 break
         else:
             matrix.lr_matrix = diagonal_matrix
@@ -247,50 +229,53 @@ def lr_zerlegung(matrix, called_by_gaus = False):
     c = 1  # <- this counter lets us work thought the matrix in steps
     a = 1
     for j in range(matrix.width_iter):
-        # print(diagonal_matrix)
+        #print(diagonal_matrix)
         for i in range(c, matrix.height): # i beginnt bei 1 damit direkt in der zweiten Zeile begonnen wird
             check = diagonal_matrix[i][j]
             mult = 1 # einfach als neutrales element der Multiplikaton
             if check != 0:
                 mult = (check / diagonal_matrix[c-1][j])  # nach der Formel (unten/oben)=multiplikator ; mit diesem x würde nach der Formel //unten-oben*multiplikator = 0// die aktuelle position in der Matrix 0 werden
             else:
-                mult = 0 # so wird jede veränderung in dem Rest der Reihe nichtig da bei den folgenden Rechnunen immer die Zahl in der Zelle selbst als ergebnis kommt
+                mult = 0 # so wird jede veränderung in dem Rest der Reihe nichtig da bei den folgenden Rechnungen immer die Zahl in der Zelle selbst als ergebnis kommt
             if j != matrix.width_iter or i != matrix.height_iter:
                 diagonal_matrix[i, j] = 0
 
             for remaining_row in range(c, matrix.width):
-                # print(f"calc: {diagonal_matrix[i][remaining_row]} - ({mult} * {diagonal_matrix[c-1][remaining_row]})")
+                #print(f"calc: {diagonal_matrix[i][remaining_row]} - ({mult} * {diagonal_matrix[c-1][remaining_row]})")
                 e = float(diagonal_matrix[i][remaining_row] - (mult * diagonal_matrix[c-1][remaining_row]))
-                # print(f"e: {float(e)}, i: {i}, remaining_row: {remaining_row} at pos: {diagonal_matrix[i][remaining_row]}")
-                # print("Will change:")
-                # print(diagonal_matrix)
+                #print(f"e: {float(e)}, i: {i}, remaining_row: {remaining_row} at pos: {diagonal_matrix[i][remaining_row]}")
+                #print("Will change:")
+                #print(diagonal_matrix)
                 diagonal_matrix[i, remaining_row] = float(e)
-                # print("Changed!!")
-                # print(diagonal_matrix)
+                #print("Changed!!")
+                #print(diagonal_matrix)
 
             if called_by_gaus:
                 # für den LV
-                # print(f"customLv[{i}, {0}] = {custom_lv[i, 0]} - {mult} * {custom_lv[c - 1, 0]}")
+                #print(diagonal_matrix)
+                #print(custom_lv)
+                #print(f"c: {c}")
+                #print(f"customLv[{i}, {0}] = {custom_lv[i, 0]} - {mult} * {custom_lv[c - 1, 0]}", end="")
                 custom_lv[i, 0] = float(custom_lv[i, 0] - (mult * custom_lv[c - 1, 0]))
-
+                #print(f" = {custom_lv[i, 0]}")
 
         a *= diagonal_matrix[c - 1][j]
         c += 1
 
     a *= diagonal_matrix[diagonal_matrix.height - 1, diagonal_matrix.width - 1]
-    # print(f"Stufenform: \n {diagonal_matrix}")
-
 
     if called_by_gaus:
-        matrix.set_lr(diagonal_matrix)
+        matrix.set_lr(diagonal_matrix) # useless, overwritten again and again :)
         matrix.lr_done = True
         matrix.set_determinant(round(a, 2))
         matrix.determinante_bestimmt = True
-        matrix.set_solution_vector_after_lr(custom_lv)
-        matrix.solution_vector_after_lr_done = True
-        return
+        #matrix.set_solution_vector_after_lr(custom_lv)
+        #matrix.solution_vector_after_lr_done = True
+        matrix.solution_vectors[name][2] = diagonal_matrix
+        return custom_lv
     # print(a)
-    matrix.set_determinant(round(a, 2))
+    matrix.set_determinant(round(a, 2)*-1)
+
     return
 
 
