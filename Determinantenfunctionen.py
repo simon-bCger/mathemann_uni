@@ -67,6 +67,11 @@ def laplace_determinante(matrix):
     :param matrix: eine Matrix des typs 'Matrix'
     :return: die errechnete Determinante
     """
+
+    if matrix.debug:
+        print(f"Executing: {inspect.currentframe().f_code.co_name}")
+
+
     # diese function wird sehr oft aufgerufen und printed deshalb nicht aus, wenn sie aufgerufen wird
     if matrix.height > 3:
         tu = beste_reihe_spalte_for_laplace(matrix)

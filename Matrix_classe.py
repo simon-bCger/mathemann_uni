@@ -272,7 +272,7 @@ class Matrix:
         if self.determinante_bestimmt:
             return self.determinante
         else:
-            raise customErrors.ExistenceError("The Determinant as not been solved!")
+            raise customErrors.ExistenceError("The Determinant has not been solved!")
 
     def set_det_process(self, verfahren):
         """
