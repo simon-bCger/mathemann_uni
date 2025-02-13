@@ -94,7 +94,7 @@ def arith_mode(matrizes, clean_mode, debug_mode):
                 elif get == "n":
                     return matrizes
                 else:
-                    print("Keine Valide Eingabe!")
+                    print("Keine valide Eingabe!")
         else:
             break
 
@@ -147,7 +147,7 @@ def arith_mode(matrizes, clean_mode, debug_mode):
                     elif get == "n":
                         return matrizes
                     else:
-                        print("Keine Valide Eingabe!")
+                        print("Keine valide Eingabe!")
 
         if clean_mode:
             system("cls")
@@ -227,7 +227,7 @@ def calc_determinant(matrizes, clean_mode, debug_mode):
             try:
                 verfahren =int(input("Eingabe des Verfahrens (0:Laplace / 1:LR-Zerlegung): "))
             except ValueError:
-                print("Keine Valide eingabe!")
+                print("Keine valide Eingabe!")
             if verfahren == 0 or verfahren == 1:
                 matrizes[m_name].set_det_process(verfahren)
                 break
@@ -303,7 +303,7 @@ def calc_variables(matrizes, lvs, clean_mode, debug_mode):
             print("Wenn du ein anderes Verfahren nutzt als zuvor, wird mit diesem Verfahren neu berechnet.\nDies erlaubt zeitliche unterschiede zu berechnen :)")
             verfahren = int(input("Eingabe des Verfahrens (0:CramerscheRegel / 1:GaussschesEliminationsVerfahren): "))
         except ValueError:
-            print("Keine Valide eingabe!")
+            print("Keine valide Eingabe!")
         else:
             if verfahren == 0 or verfahren == 1:
                 break
@@ -362,7 +362,7 @@ def set_matrix(matrizes, clean_mode, debug_mode):
         try:
             zeilen = int(input("Anzahl der Zeilen: "))
         except ValueError:
-            print("Keine Valide eingabe!")
+            print("Keine valide Eingabe!")
         else:
             if zeilen > 1:
                 break
@@ -373,7 +373,7 @@ def set_matrix(matrizes, clean_mode, debug_mode):
         try:
             spalten = int(input("Anzahl der Spalten: "))
         except ValueError:
-            print("Keine Valide eingabe!")
+            print("Keine valide Eingabe!")
         else:
             if spalten > 0:
                 break
@@ -388,7 +388,7 @@ def set_matrix(matrizes, clean_mode, debug_mode):
                 try:
                     lowest_value = float(input("Gib den niedrigsten Wert ein welcher die Matrix beinhalten soll:"))
                 except ValueError:
-                    print("Keine Valide eingabe!")
+                    print("Keine valide Eingabe!")
                 else:
                     break
 
@@ -396,7 +396,7 @@ def set_matrix(matrizes, clean_mode, debug_mode):
                 try:
                     highest_value = float(input("Gib den höchsten Wert ein welcher die Matrix beinhalten soll:"))
                 except ValueError:
-                    print("Keine Valide eingabe!")
+                    print("Keine valide Eingabe!")
                 else:
                     break
 
@@ -406,7 +406,7 @@ def set_matrix(matrizes, clean_mode, debug_mode):
             m = Matrix_classe.Matrix(zeilen, spalten, debug=debug_mode)
             m.record_matrix()
         else:
-            print("Keine Valide eingabe!")
+            print("Keine valide Eingabe!")
 
         break
 
@@ -468,7 +468,7 @@ def set_solution_vector(lvs, clean_mode, debug_mode, pre_name="not_given"):
                 try:
                     lowest_value = float(input("Gib den niedrigsten Wert ein welcher die Matrix beinhalten soll:"))
                 except ValueError:
-                    print("Keine Valide eingabe!")
+                    print("Keine valide Eingabe!")
                 else:
                     break
 
@@ -476,7 +476,7 @@ def set_solution_vector(lvs, clean_mode, debug_mode, pre_name="not_given"):
                 try:
                     highest_value = float(input("Gib den höchsten Wert ein welcher die Matrix beinhalten soll:"))
                 except ValueError:
-                    print("Keine Valide eingabe!")
+                    print("Keine valide Eingabe!")
                 else:
                     break
 
@@ -485,7 +485,7 @@ def set_solution_vector(lvs, clean_mode, debug_mode, pre_name="not_given"):
             m = Matrix_classe.Matrix(zeilen, 1, debug=debug_mode)
             m.record_matrix()
         else:
-            print("Keine Valide eingabe!")
+            print("Keine valide Eingabe!")
 
         break
 
