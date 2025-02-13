@@ -1,0 +1,7 @@
+# Default ignored files
+/shelf/
+/workspace.xml/
+/__pycache__/
+/.idea/
+/test.py/
+/matrix_multiplikation.py/

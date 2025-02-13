@@ -265,7 +265,7 @@ def lr_zerlegung(matrix, name = "not_needed", called_by_gaus = False):
     a *= diagonal_matrix[diagonal_matrix.height - 1, diagonal_matrix.width - 1]
 
     if called_by_gaus:
-        matrix.set_lr(diagonal_matrix) # useless, overwritten again and again :)
+        # matrix.set_lr(diagonal_matrix) # useless, overwritten again and again :)
         matrix.lr_done = True
         matrix.set_determinant(round(a, 2))
         matrix.determinante_bestimmt = True

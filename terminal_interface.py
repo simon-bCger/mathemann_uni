@@ -1,4 +1,3 @@
-import time
 from os import system
 import Matrix_classe
 import numpy as np
